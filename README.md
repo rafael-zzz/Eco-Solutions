@@ -12,7 +12,7 @@ Este projeto é uma plataforma web que permite a localização de doações de t
 - [Licença](#licença)
 
 ## Link SR1
-- [SR1](https://github.com/rafatito03/Eco-Solutions/blob/main/SR1.md)
+- [SR1](https:github.com/rafatito03/Eco-Solutions/blob/main/SR1.md)
 
 ## Descrição do Projeto
 
