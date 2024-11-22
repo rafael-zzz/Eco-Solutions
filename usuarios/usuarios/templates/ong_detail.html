@@ -1,0 +1,149 @@
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalhes da ONG</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+    <script>
+        //visibilidade do formulário
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('hidden');
+        }
+
+        //visibilidade do card de resíduos
+        function toggleResiduos(cardId) {
+            const card = document.getElementById(cardId);
+            card.classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body class="bg-neutral-950 bg-gradient min-h-screen">
+    <div class="container mx-auto p-8">
+        <!-- Título e Botão de Voltar -->
+        <div class="flex items-center space-x-8 mb-4">
+            <a href="{% url 'mapa' %}">
+                <div class="bg-purple-400 hover:bg-purple-600 p-2 rounded-lg">
+                    <i class="bi bi-arrow-return-left text-2xl text-white"></i>
+                </div>
+            </a>
+            <h1 class="text-4xl font-bold text-white mx-auto">{{ ong.nome }}</h1>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-6 mb-8 cursor-pointer hover:shadow-lg transition-transform transform hover:scale-105" >
+            <h2 class="text-2xl font-semibold text-white mb-4">Atualizar Informações da ONG</h2>
+            <div class="p-4 border-2 border-transparent bg-gray-700 hover:border-purple-500 hover:bg-purple-600 hover:rounded-lg transition-all">
+                <p class="text-white text-lg font-medium hover:text-white transition-colors duration-300"
+                    onclick="toggleForm('updateForm')"
+                >
+                    Clique aqui para editar as informações da ONG.
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulário Atualizar ONG -->
+        <div id="updateForm" class="bg-gray-800 rounded-lg p-6 mb-8 hidden">
+            <form method="post" action="{% url 'update_ong' ong.id %}">
+                {% csrf_token %}
+                <label class="block text-white font-semibold mb-2" for="nome">Nome da ONG</label>
+                <input type="text" name="nome" id="nome" value="{{ ong.nome }}" required class="w-full p-2 border border-gray-300 rounded mb-4" />
+
+                <label class="block text-white font-semibold mb-2" for="cnpj">CNPJ</label>
+                <input type="text" name="cnpj" id="cnpj" value="{{ ong.cnpj }}" required class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="00.000.000/0000-00" />
+
+                <label class="block text-white font-semibold mb-2" for="endereco">Endereço</label>
+                <input type="text" name="endereco" id="endereco" value="{{ ong.endereco }}" required class="w-full p-2 border border-gray-300 rounded mb-4" />
+
+                <label class="block text-white font-semibold mb-2">Latitude(em formato decimal)</label>
+                <input type="text" name="latitude" value="{{ ong.latitude }}" required class="w-full p-2 border border-white-300 rounded mb-4">
+
+                <label class="block text-white font-semibold mb-2">Longitude(em formato decimal)</label>
+                <input type="text" name="longitude" value="{{ ong.longitude }}" required class="w-full p-2 border border-white-300 rounded mb-4">
+
+                <label class="block text-white font-semibold mb-2">Informações</label>
+                <textarea name="informacao" class="w-full p-2 border border-white-300 rounded mb-4">{{ ong.informacao }}</textarea>
+
+                <button type="submit" class="px-4 py-2 bg-purple-500 text-white rounded transition transform hover:scale-110">
+                    Atualizar
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-6 mb-8 cursor-pointer hover:shadow-lg transition-transform transform hover:scale-105" >
+            <h2 class="text-2xl font-semibold text-white mb-4">Adicionar Resíduo</h2>
+            <div class="p-4 border-2 border-transparent hover:border-blue-500  bg-gray-700 hover:bg-blue-600 hover:rounded-lg transition-all">
+                <p class="text-white text-lg font-medium hover:text-white transition-colors duration-300"
+                    onclick="toggleForm('addResiduForm')"
+                >
+                    Clique aqui para adicionar um resíduo.
+                </p>
+            </div>
+        </div>
+
+        <!-- Formulário Adicionar Resíduo -->
+        <div id="addResiduForm" class="bg-gray-800 rounded-lg p-6 mb-8 hidden">
+            <form method="POST" action="{% url 'adicionar_residuo' ong_id=ong.id %}">
+                {% csrf_token %}
+                <label class="block text-white font-semibold mb-2" for="tipo">Tipo de Resíduo</label>
+                <input type="text" name="tipo" id="tipo" required class="w-full p-2 border border-gray-300 rounded mb-4" />
+
+                <label class="block text-white font-semibold mb-2" for="quantidade">Quantidade</label>
+                <input type="number" name="quantidade" id="quantidade" required class="w-full p-2 border border-gray-300 rounded mb-4" />
+
+                <label class="block text-white font-semibold mb-2" for="peso">Peso (kg)</label>
+                <input type="number" name="peso" id="peso" class="w-full p-2 border border-gray-300 rounded mb-4" />
+
+                <label class="block text-white font-semibold mb-2" for="status">Status</label>
+                <select name="status" id="status" class="w-full p-2 border border-gray-300 rounded mb-4">
+                    <option value="armazenado">Armazenado</option>
+                    <option value="reciclado">Reciclado</option>
+                    <option value="descartado">Descartado</option>
+                </select>
+
+                <label class="block text-white font-semibold mb-2" for="descricao">Descrição</label>
+                <textarea name="descricao" id="descricao" class="w-full p-2 border border-gray-300 rounded mb-4"></textarea>
+
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded transition transform hover:scale-110">
+                    Adicionar Resíduo
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-6 mb-8 cursor-pointer hover:shadow-lg transition-transform transform hover:scale-105" >
+            <h2 class="text-2xl font-semibold text-white mb-4">Resíduos Cadastrados</h2>
+            <div class="p-4 border-2 border-transparent bg-gray-700 hover:border-green-500 hover:bg-green-600 hover:rounded-lg transition-all">
+                <p class="text-white text-lg font-medium hover:text-white transition-colors duration-300"
+                    onclick="toggleResiduos('residuosCard')"
+                >
+                    Clique aqui para ver os resíduos cadastrados.
+                </p>
+            </div>
+        </div>
+        <div id="residuosCard" class="hidden">
+            <div class="mt-8">
+                <h3 class="text-xl font-semibold text-white mb-4">Resíduos Cadastrados</h3>
+                <ul class="space-y-4">
+                    {% for residuo in residuos %}
+                        <li class="flex justify-between items-center p-4 bg-gray-100 rounded-md shadow-md">
+                            <div>
+                                <h4 class="font-semibold">{{ residuo.tipo }}</h4>
+                                <p class="text-sm">Quantidade: {{ residuo.quantidade }}</p>
+                                <p class="text-sm">Peso: {{ residuo.peso }} kg</p>
+                                <p class="text-sm">Status: {{ residuo.status }}</p>
+                                <p class="text-sm">Descrição: {{ residuo.descricao }}</p>
+                            </div>
+                            <form action="{% url 'remover_residuo' residuo_id=residuo.id %}" method="POST" class="ml-4" onsubmit="return confirm('Tem certeza que deseja remover este resíduo?');">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+                                    Remover
+                                </button>
+                            </form>
+                        </li>
+                    {% empty %}
+                        <p class="text-gray-500">Nenhum resíduo registrado ainda.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

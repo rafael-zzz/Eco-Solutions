@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa com Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        /* Estilo da sidebar com animação */
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            width: 300px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.5s ease-in-out;
+            z-index: 1000;
+        }
+        /* Mostrar a sidebar */
+        .sidebar-open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto text-center my-6">
+        <h1 class="text-4xl font-bold text-gray-800">Mapa Interativo - Pernambuco</h1>
+        <p class="text-lg text-gray-500 mt-2">Clique nos marcadores para mais informações</p>
+    </div>
+
+    <!-- Mapa Leaflet -->
+    <div id="map" class="mx-auto container rounded-lg"></div>
+
+    <!-- Sidebar para exibir informações -->
+    <div class="sidebar p-4 transform" id="infoSidebar">
+        <h2 class="text-xl font-semibold text-gray-800" id="localName">Nome do Local</h2>
+        <p class="text-gray-600" id="localInfo">Informação sobre o local</p>
+        <p class="text-gray-600" id="localendereco">Endereço do local</p>
+        <img id="localImage" src="" alt="Imagem do Local" class="w-full h-40 object-cover rounded-lg mt-4 shadow-md">
+
+
+        <!-- Tabela de informações adicionais -->
+        <table class="mt-4 w-full border-collapse">
+            <thead>
+                <tr>
+                    <th class="border-b border-gray-300 text-left p-2">Tipo de tecido</th>
+                    <th class="border-b border-gray-300 text-left p-2">metragem</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="border-b border-gray-300 p-2">Jeans</td>
+                    <td class="border-b border-gray-300 p-2">6m</td>
+                </tr>
+                <tr>
+                    <td class="border-b border-gray-300 p-2">Lycra</td>
+                    <td class="border-b border-gray-300 p-2">10m</td>
+                </tr>
+                <tr>
+                    <td class="border-b border-gray-300 p-2">algodão</td>
+                    <td class="border-b border-gray-300 p-2">20m</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button id="closeSidebar" class="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors">Fechar</button>
+    </div>
+
+    <script>
+        // Inicializar o mapa em Pernambuco (coordenadas aproximadas)
+        var map = L.map('map').setView([-8.047562, -34.877001], 10);  // Recife
+
+        // Adicionar camada de mapa do OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Dados dos marcadores fornecidos pelo Django
+        var locais = [
+            {% for local in locais %}
+            {
+                nome: "{{ local.nome }}",
+                latitude: {{ local.latitude }},
+                longitude: {{ local.longitude }},
+                informacao: "{{ local.informacao }}",
+                endereco: "{{ local.endereco }}",
+                imagem: "{{ local.imagem }}"
+            },
+            {% endfor %}
+        ];
+
+        // Iterar sobre os locais e adicionar marcadores
+        locais.forEach(function(local) {
+            var marker = L.marker([local.latitude, local.longitude]).addTo(map);
+            marker.on('click', function() {
+                document.getElementById('localName').innerText = local.nome;
+                document.getElementById('localInfo').innerText = local.informacao;
+                document.getElementById('localImage').src = local.imagem;
+                document.getElementById('localendereco').innerText = local.endereco;  
+                document.getElementById('infoSidebar').classList.add('sidebar-open');
+            });
+
+            // Adicionar um popup que abre ao clicar no marcador
+            marker.bindPopup(`<b>${local.nome}</b><br>${local.informacao}<br>${local.endereco}`);
+        });
+
+        // Evento para fechar a sidebar
+        document.getElementById('closeSidebar').addEventListener('click', function() {
+            document.getElementById('infoSidebar').classList.remove('sidebar-open');
+        });
+    </script>
+</body>
+</html>

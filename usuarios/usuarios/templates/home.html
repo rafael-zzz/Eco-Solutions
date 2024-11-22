@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Home</title>
+</head>
+<body>
+<header>
+    <h1>Bem-vindo ao Eco Storage</h1>
+</header>
+<nav>
+    {% if user.is_authenticated %}
+        <div class="welcome">Olá, {{ user.username }}!</div>
+        <a href="{% url 'logout' %}">Sair</a>
+    {% else %}
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'cadastro' %}">Cadastro</a>
+    {% endif %}
+</nav>
