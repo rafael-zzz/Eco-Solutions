@@ -8,52 +8,60 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
-        /* ... existing code ... */
         .sidebar {
-        position: absolute;
-        top: 5%;
-        left: 0;
-        height: 90%;
-        width: 350px;
-        background-color: rgba(255, 255, 255, 0.95);
-        border-right: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-        display: none;
-        z-index: 1000;
+            position: absolute;
+            top: 10%;
+            left: 0;
+            height: 80%;
+            width: 350px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
         }
         .sidebar-open {
             display: block;
-        }   
-    
-        /* Make the map container position relative for absolute positioning context */
+        }
         #map {
             height: 900px;
             width: 100%;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
+        .battery {
+            width: 100px;
+            height: 20px;
+            border: 1px solid #000;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .battery-level {
+            height: 100%;
+            background-color: green;
+        }
     </style>
 </head>
-    <body class="bg-gray-100 font-sans">
-        <nav class="bg-gray-800 flex items-center justify-between px-8">
-            <div class="flex items-center">
-                <h1 class="text-green-500 text-2xl mr-10">EcoStorage</h1>
-                <a href="/" class="text-white py-7 px-5 hover:bg-gray-300 hover:text-black">Home</a>
-            </div>
-            <div class="auth-buttons flex items-center">
-                {% if user.is_authenticated %}
-                    <span class="text-white mr-4">Olá, {{ user.username }}!</span>
-                    <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" 
-                            onclick="window.location.href='/logout'">Sair</button>
-                {% else %}
-                    <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
-                            onclick="window.location.href='/login'">Login</button>
-                    <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
-                            onclick="window.location.href='/cadastro'">Cadastro</button>
-                {% endif %}
-            </div>
-        </nav>   
-        <!-- Mapa Leaflet -->
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-gray-800 flex items-center justify-between px-8">
+        <div class="flex items-center">
+            <h1 class="text-green-500 text-2xl mr-10">EcoStorage</h1>
+            <a href="/" class="text-white py-7 px-5 hover:bg-gray-300 hover:text-black">Home</a>
+        </div>
+        <div class="auth-buttons flex items-center">
+            {% if user.is_authenticated %}
+                <span class="text-white mr-4">Olá, {{ user.username }}!</span>
+                <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" 
+                        onclick="window.location.href='/logout'">Sair</button>
+            {% else %}
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/login'">Login</button>
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/cadastro'">Cadastro</button>
+            {% endif %}
+        </div>
+    </nav>   
+    <!-- Mapa Leaflet -->
     <div id="map" class="mx-auto container rounded-lg"></div>
 
     <!-- Sidebar para exibir informações -->
@@ -117,18 +125,14 @@
 
         <img id="localImage" src="" alt="Imagem do Local" class="w-full h-40 object-cover rounded-lg mt-4 shadow-md">
 
-        <!-- Tabela de informações adicionais -->
-        <table class="mt-4 w-full border-collapse">
-            <thead>
-                <tr>
-                    <th class="border-b border-gray-300 text-left p-2">Tipo de tecido</th>
-                    <th class="border-b border-gray-300 text-left p-2">metragem</th>
-                </tr>
-            </thead>
-            <tbody id="storageTable">
-                <!-- Será preenchido dinamicamente -->
-            </tbody>
-        </table>
+        <!-- Capacidade da ONG -->
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold text-gray-800">Capacidade</h3>
+            <div class="battery">
+                <div id="batteryLevel" class="battery-level"></div>
+            </div>
+            <p id="capacidadeText" class="text-gray-600"></p>
+        </div>
     </div>
 
     <script>
@@ -152,54 +156,15 @@
                 longitude: {{ local.longitude }},
                 imagem: "{{ local.imagem }}",
                 nota_media: {{ local.nota_media|default:"0" }},
-                armazenamento: {{ local.armazenamento_set.all|safe|default:"[]" }},
+                capacidade_atual: {{ local.capacidade_atual|default:"0" }},
+                capacidade_maxima: {{ local.capacidade_maxima|default:"0" }},
+                capacidade_percentual: {{ local.capacidade_percentual|default:"0" }}
             },
             {% endfor %}
         ];
 
-        // Função para determinar a cor baseada na quantidade
-        function getColorClass(metros) {
-            if (metros >= 50) return 'text-green-500';
-            if (metros >= 10) return 'text-yellow-500';
-            return 'text-red-500';
-        }
-
-        // Função para atualizar a tabela de armazenamento
-        function updateStorageTable(armazenamento) {
-            const tbody = document.getElementById('storageTable');
-            tbody.innerHTML = '';
-            
-            armazenamento.forEach(item => {
-                const row = document.createElement('tr');
-                const colorClass = getColorClass(item.metros);
-                row.innerHTML = `
-                    <td class="border-b border-gray-300 p-2">${item.tipo}</td>
-                    <td class="border-b border-gray-300 p-2 ${colorClass} font-bold">${item.metros}m</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
         // Iterar sobre os locais e adicionar marcadores
         locais.forEach(function(local) {
-            // Determinar a cor do marcador baseado na média de armazenamento
-            let mediaArmazenamento = 0;
-            if (local.armazenamento && local.armazenamento.length > 0) {
-                mediaArmazenamento = local.armazenamento.reduce((acc, curr) => acc + parseFloat(curr.metros), 0) / local.armazenamento.length;
-            }
-
-            // Criar ícone personalizado baseado na média de armazenamento
-            let markerColor = 'red';
-            if (mediaArmazenamento >= 50) markerColor = 'green';
-            else if (mediaArmazenamento >= 10) markerColor = 'yellow';
-
-            var markerIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;"></div>`,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-
             var marker = L.marker([local.latitude, local.longitude]).addTo(map);
             
             marker.on('click', function() {
@@ -216,6 +181,10 @@
                 if (form) {
                     form.action = `/ong/${local.id}/avaliar/`;
                 }
+
+                // Atualiza a capacidade da ONG
+                document.getElementById('batteryLevel').style.width = `${local.capacidade_percentual}%`;
+                document.getElementById('capacidadeText').innerText = `Capacidade: ${local.capacidade_atual} / ${local.capacidade_maxima}`;
                 
                 document.getElementById('infoSidebar').classList.add('sidebar-open');
             });

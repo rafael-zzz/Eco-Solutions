@@ -15,11 +15,19 @@
             <h1 class="text-green-500 text-2xl mr-10">EcoStorage</h1>
             <a href="/mapa" class="text-white py-7 px-5 hover:bg-gray-300 hover:text-black">Mapa</a>
         </div>
-        <div class="auth-buttons flex">
-            <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" onclick="window.location.href='/login'">Login</button>
-            <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" onclick="window.location.href='/cadastro'">Cadastro</button>
+        <div class="auth-buttons flex items-center">
+            {% if user.is_authenticated %}
+                <span class="text-white mr-4">Olá, {{ user.username }}!</span>
+                <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" 
+                        onclick="window.location.href='/logout'">Sair</button>
+            {% else %}
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/login'">Login</button>
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/cadastro'">Cadastro</button>
+            {% endif %}
         </div>
-    </nav>
+    </nav>   
 </header>
 <br>
     <div class="text-center justify-between px-8 justify-content align-center">

@@ -8,7 +8,7 @@ from .models import  ONG, Residuos, AvaliacaoONG, PerfilUsuario
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView
 from .forms import ONGForm, ResiduoForm
-from django.db.models import Avg
+from django.db.models import Avg,Sum
 
 def user_login(request):
     if request.method == 'POST':
@@ -20,9 +20,12 @@ def user_login(request):
             if user is not None:
                 auth_login(request, user)
                 messages.success(request, f'Bem-vindo, {username}!')
-                
-                # Redireciona para a página do mapa após o login
-                return redirect('mapa')
+                try:
+                    ong = user.ong
+                    return redirect('ong_detail', id=ong.id)
+                except ONG.DoesNotExist:
+                    # Redireciona para a página do mapa se o usuário não estiver associado a uma ONG
+                    return redirect('mapa')
             else:
                 messages.error(request, 'Usuário ou senha inválidos.')
         else:
@@ -78,9 +81,10 @@ def cadastro(request):
 
 
 def mapa(request):
-    locais = ONG.objects.prefetch_related('avaliacoes').annotate(
-        nota_media=Avg('avaliacoes__nota')
-    ).all()
+    locais = ONG.objects.prefetch_related('avaliacoes', 'residuos').annotate(
+    nota_media=Avg('avaliacoes__nota'),
+    capacidade_atual=Sum('residuos__peso',distinct=True)
+).all()
     
     context = {
         'locais': [{
@@ -92,7 +96,11 @@ def mapa(request):
             'endereco': local.endereco,
             'imagem': local.imagem,
             'nota_media': float(local.nota_media) if local.nota_media else 0,
-            'armazenamento': list(local.armazenamento_set.all().values())
+            'capacidade_atual': local.capacidade_atual if local.capacidade_atual else 0,
+            'capacidade_maxima': local.capacidade_maxima,
+            'capacidade_percentual': (local.capacidade_atual / local.capacidade_maxima) * 100 if local.capacidade_maxima > 0 else 0
+            
+            
         } for local in locais]
     }
     return render(request, 'mapa.html', context)

@@ -1,7 +1,7 @@
 [
     {
-        "model": "usuarios.ong", 
-        "pk": 1,  
+        "model": "usuarios.ong",
+        "pk": 1,
         "fields": {
             "nome": "Doe agora",
             "cnpj": "12.345.678/0001-99",
@@ -9,13 +9,16 @@
             "latitude": -8.047562,
             "longitude": -34.877001,
             "informacao": "Doe seus tecidos velhos como cortina, lençóis. Horário de funcionamento das 7h às 18h.",
-            "imagem": "https://www.fernandomachado.blog.br/wp-content/uploads/2016/02/casa-do-brigadeiro2.jpg",  
-            "usuario": null
+            "imagem": "https://www.fernandomachado.blog.br/wp-content/uploads/2016/02/casa-do-brigadeiro2.jpg",
+            "usuario": null,
+            "telefone": "(00) 00000-0000",
+            "whatsapp": "http://wa.me/5581994382896",
+            "capacidade_maxima": 0
         }
     },
     {
-        "model": "usuarios.ong",  
-        "pk": 2,  
+        "model": "usuarios.ong",
+        "pk": 2,
         "fields": {
             "nome": "Doe aqui",
             "cnpj": "98.765.432/0001-10",
@@ -23,8 +26,11 @@
             "latitude": -8.036560,
             "longitude": -34.921494,
             "informacao": "Doe suas roupas velhas aqui no próprio instituto Ricardo Brennand. Horário de funcionamento das 8h às 19h.",
-            "imagem": "https://images.tcdn.com.br/img/img_prod/460977/estatua_colecionavel_snorlax_pokemon_15cm_anime_manga_mega_saldao_mkp_127547_1_be24705fdfde2134b0fef1815fe934d4.jpg",  
-            "usuario": null
+            "imagem": "https://images.tcdn.com.br/img/img_prod/460977/estatua_colecionavel_snorlax_pokemon_15cm_anime_manga_mega_saldao_mkp_127547_1_be24705fdfde2134b0fef1815fe934d4.jpg",
+            "usuario": null,
+            "telefone": "(00) 00000-0000",
+            "whatsapp": "http://wa.me/5581994382896",
+            "capacidade_maxima": 0
         }
     }
 ]

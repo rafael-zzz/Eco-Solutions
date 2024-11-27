@@ -1,14 +1,6 @@
 from django import forms
-from .models import ONG, Armazenamento, Residuos
+from .models import ONG, Residuos
 
-class ArmazenamentoForm(forms.ModelForm):
-    class Meta:
-        model = Armazenamento
-        fields = ['tipo_tecido', 'metros']
-        widgets = {
-            'tipo_tecido': forms.TextInput(attrs={'class': 'form-control'}),
-            'metros': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
-        }
 
 class ONGForm(forms.ModelForm):
     class Meta:

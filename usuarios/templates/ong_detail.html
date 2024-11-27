@@ -32,7 +32,7 @@
         <!-- Título e Botão de Voltar -->
         <div class="flex items-center space-x-8 mb-4">
             <a href="{% url 'mapa' %}">
-                <div class="bg-purple-400 hover:bg-purple-600 p-2 rounded-lg">
+                <div class="bg-red-400 hover:bg-red-600 p-2 rounded-lg">
                     <i class="bi bi-arrow-return-left text-2xl text-white"></i>
                 </div>
             </a>
@@ -208,34 +208,7 @@
             </form>
         </div>
 
-        <!-- Adicione esta seção para avaliações -->
-        {% if user.perfil.is_avaliador %}
-        <div class="bg-gray-800 rounded-lg p-6 mb-8">
-            <h2 class="text-2xl font-semibold text-white mb-4">Avaliar ONG</h2>
-            <button onclick="toggleForm('formAvaliacao')" 
-                    class="bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors mb-4">
-                Avaliar ONG
-            </button>
-
-            <form id="formAvaliacao" method="POST" action="{% url 'avaliar_ong' ong_id=ong.id %}" class="hidden space-y-4">
-                {% csrf_token %}
-                <div>
-                    <label class="block text-white mb-2">Nota (1-5)</label>
-                    <div class="flex space-x-4">
-                        {% for i in "12345" %}
-                        <label class="flex items-center space-x-2 text-white">
-                            <input type="radio" name="nota" value="{{ i }}" required
-                                   class="form-radio text-yellow-500 focus:ring-yellow-500">
-                            <span>{{ i }}</span>
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <button type="submit" 
-                        class="w-full bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600 transition-colors">
-                    Enviar Avaliação
-                </button>
+                
             </form>
         </div>
     </div>
