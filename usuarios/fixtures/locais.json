@@ -1,30 +1,38 @@
 [
     {
-        "model": "usuarios.ong", 
-        "pk": 1,  
+        "model": "usuarios.ong",
+        "pk": 1,
         "fields": {
             "nome": "Doe agora",
             "cnpj": "12.345.678/0001-99",
             "endereco": "Av. Boa Viagem, 123",
             "latitude": -8.047562,
             "longitude": -34.877001,
-            "informacao": "Doe seus tecidos velhos como cortina, lençóis. Horário de funcionamento das 7h às 18h.",
-            "imagem": "https://www.fernandomachado.blog.br/wp-content/uploads/2016/02/casa-do-brigadeiro2.jpg",  
-            "usuario": null
+            "informacao": "Doe seus tecidos velhos como cortina, lençóis.",
+            "imagem": "https://www.fernandomachado.blog.br/wp-content/uploads/2016/02/casa-do-brigadeiro2.jpg",
+            "usuario": null,
+            "telefone": "(00) 00000-0000",
+            "whatsapp": "5581992441938",
+            "capacidade_maxima": 100,
+            "horario_funcionamento": "das 7h às 18h"
         }
     },
     {
-        "model": "usuarios.ong",  
-        "pk": 2,  
+        "model": "usuarios.ong",
+        "pk": 2,
         "fields": {
             "nome": "Doe aqui",
             "cnpj": "98.765.432/0001-10",
             "endereco": "Propriedade de São João, 200",
             "latitude": -8.036560,
             "longitude": -34.921494,
-            "informacao": "Doe suas roupas velhas aqui no próprio instituto Ricardo Brennand. Horário de funcionamento das 8h às 19h.",
-            "imagem": "https://images.tcdn.com.br/img/img_prod/460977/estatua_colecionavel_snorlax_pokemon_15cm_anime_manga_mega_saldao_mkp_127547_1_be24705fdfde2134b0fef1815fe934d4.jpg",  
-            "usuario": null
+            "informacao": "Doe suas roupas velhas aqui no próprio instituto Ricardo Brennand.",
+            "imagem": "https://www.diariodepernambuco.com.br/static/app/noticia_127983242361/2018/08/17/760300/20180817094641192199i.jpg",
+            "usuario": null,
+            "telefone": "(00) 00000-0000",
+            "whatsapp": "5581994382896",
+            "capacidade_maxima": 200,
+            "horario_funcionamento": "das 8h às 19h"
         }
     }
 ]

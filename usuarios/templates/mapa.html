@@ -1,81 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa com Leaflet</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        .sidebar {
+            position: absolute;
+            top: 10%;
+            left: 0;
+            height: 80%;
+            width: 350px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+        .sidebar-open {
+            display: block;
+        }
         #map {
-            height: 600px;
+            height: 900px;
             width: 100%;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        /* Estilo da sidebar com animação */
-        .sidebar {
-            position: absolute;
-            top: 20px;
-            right: 10px;
-            width: 300px;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transform: translateX(120%);
-            transition: transform 0.5s ease-in-out;
-            z-index: 1000;
+        .battery {
+            width: 100px;
+            height: 20px;
+            border: 1px solid #000;
+            position: relative;
+            margin-bottom: 10px;
         }
-        /* Mostrar a sidebar */
-        .sidebar-open {
-            transform: translateX(0);
+        .battery-level {
+            height: 100%;
+            background-color: green;
         }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
-    <div class="container mx-auto text-center my-6">
-        <h1 class="text-4xl font-bold text-gray-800">Mapa Interativo - Pernambuco</h1>
-        <p class="text-lg text-gray-500 mt-2">Clique nos marcadores para mais informações</p>
-    </div>
-
+    <nav class="bg-gray-800 flex items-center justify-between px-8">
+        <div class="flex items-center">
+            <h1 class="text-green-500 text-2xl mr-10">EcoStorage</h1>
+            <a href="/" class="text-white py-7 px-5 hover:bg-gray-300 hover:text-black">Home</a>
+            {% if user.is_authenticated and user.ong %}
+            <a href="{% url 'ong_detail' user.ong.id %}" class="text-white py-7 px-5 hover:bg-gray-300 hover:text-black">Minha ONG</a>
+            {% endif %} 
+        </div>
+        <div class="auth-buttons flex items-center">
+            {% if user.is_authenticated %}
+                <span class="text-white mr-4">Olá, {{ user.username }}!</span>
+                <button class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600" 
+                        onclick="window.location.href='/logout'">Sair</button>
+            {% else %}
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/login'">Login</button>
+                <button class="bg-green-500 text-white py-2 px-4 ml-6 rounded hover:bg-green-600" 
+                        onclick="window.location.href='/cadastro'">Cadastro</button>
+            {% endif %}
+        </div>
+    </nav>   
     <!-- Mapa Leaflet -->
     <div id="map" class="mx-auto container rounded-lg"></div>
 
     <!-- Sidebar para exibir informações -->
     <div class="sidebar p-4 transform" id="infoSidebar">
+        <button id="closeSidebar" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
         <h2 class="text-xl font-semibold text-gray-800" id="localName">Nome do Local</h2>
-        <p class="text-gray-600" id="localInfo">Informação sobre o local</p>
+        <p class="text-gray-600 mt-2" id="localInfo">Informação sobre o local</p>
         <p class="text-gray-600" id="localendereco">Endereço do local</p>
+        
+        <!-- Seção de Avaliação -->
+        <div class="mt-4 border-t pt-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-yellow-500 text-xl">★</span>
+                    <span id="localNota" class="ml-1 text-gray-700">Sem avaliações</span>
+                </div>
+                {% if user.is_authenticated and user.perfil.is_avaliador %}
+                    <button onclick="toggleAvaliacaoForm()" 
+                            class="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 text-sm">
+                        Avaliar ONG
+                    </button>
+                {% endif %}
+            </div>
+
+            <!-- Formulário de Avaliação -->
+            {% if user.is_authenticated and user.perfil.is_avaliador %}
+            <form id="avaliacaoForm" method="POST" action="" class="hidden mt-4 space-y-3">
+                {% csrf_token %}
+                <input type="hidden" id="ongId" name="ong_id" value="">
+                <div>
+                    <label class="block text-sm text-gray-600">Sua nota:</label>
+                    <div class="flex space-x-4 mt-1">
+                        {% for i in "12345" %}
+                        <label class="flex items-center">
+                            <input type="radio" name="nota" value="{{ i }}" required
+                                   class="form-radio text-yellow-500">
+                            <span class="ml-1 text-sm text-gray-600">{{ i }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button type="submit" 
+                            class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 text-sm">
+                        Enviar Avaliação
+                    </button>
+                    <button type="button" 
+                            onclick="toggleAvaliacaoForm()"
+                            class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+
         <img id="localImage" src="" alt="Imagem do Local" class="w-full h-40 object-cover rounded-lg mt-4 shadow-md">
-
-
-        <!-- Tabela de informações adicionais -->
-        <table class="mt-4 w-full border-collapse">
-            <thead>
-                <tr>
-                    <th class="border-b border-gray-300 text-left p-2">Tipo de tecido</th>
-                    <th class="border-b border-gray-300 text-left p-2">metragem</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="border-b border-gray-300 p-2">Jeans</td>
-                    <td class="border-b border-gray-300 p-2">6m</td>
-                </tr>
-                <tr>
-                    <td class="border-b border-gray-300 p-2">Lycra</td>
-                    <td class="border-b border-gray-300 p-2">10m</td>
-                </tr>
-                <tr>
-                    <td class="border-b border-gray-300 p-2">algodão</td>
-                    <td class="border-b border-gray-300 p-2">20m</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <button id="closeSidebar" class="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors">Fechar</button>
+        <!-- Link para Waze -->
+        <div class="mt-4">
+            <a id="wazeLink" href="#" target="_blank" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                Navegar com Waze
+            </a>
+        </div>
+        <div class="mt-4">
+            <a id="whatsappLink" href="#" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.52 3.48A11.94 11.94 0 0012 0C5.37 0 0 5.37 0 12c0 2.12.55 4.15 1.6 5.95L0 24l6.17-1.62A11.94 11.94 0 0012 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.2-3.48-8.52zM12 22c-1.85 0-3.63-.5-5.2-1.45l-.37-.22-3.65.96.98-3.56-.24-.38A9.94 9.94 0 012 12c0-5.52 4.48-10 10-10s10 4.48 10 10-4.48 10-10 10zm5.27-7.73c-.27-.14-1.6-.79-1.85-.88-.25-.09-.43-.14-.6.14-.18.27-.69.88-.85 1.06-.16.18-.31.2-.58.07-.27-.14-1.14-.42-2.17-1.34-.8-.71-1.34-1.58-1.5-1.85-.16-.27-.02-.42.12-.55.12-.12.27-.31.41-.46.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.6-1.44-.82-1.97-.22-.53-.44-.46-.6-.46-.16 0-.34-.02-.52-.02-.18 0-.48.07-.73.34-.25.27-.96.94-.96 2.3 0 1.36.99 2.68 1.13 2.86.14.18 1.95 2.98 4.73 4.07.66.28 1.18.45 1.58.58.66.21 1.26.18 1.73.11.53-.08 1.6-.65 1.83-1.28.23-.63.23-1.17.16-1.28-.07-.11-.25-.18-.52-.32z"/>
+                </svg>
+                WhatsApp
+            </a>
+        </div>
+        <!-- Ícone de Telefone -->
+        <div class="mt-4 flex items-center">
+            <i class="fas fa-phone-alt text-gray-600 mr-2"></i>
+            <span id="localTelefone" class="text-gray-600"></span>
+        </div>
+        <!-- Capacidade da ONG -->
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold text-gray-800">Capacidade</h3>
+            <div class="battery">
+                <div id="batteryLevel" class="battery-level"></div>
+            </div>
+            <p id="capacidadeText" class="text-gray-600"></p>
+        </div>
     </div>
 
     <script>
@@ -91,12 +170,20 @@
         var locais = [
             {% for local in locais %}
             {
+                id: {{ local.id }},
                 nome: "{{ local.nome }}",
-                latitude: {{ local.latitude }},
-                longitude: {{ local.longitude }},
                 informacao: "{{ local.informacao }}",
                 endereco: "{{ local.endereco }}",
-                imagem: "{{ local.imagem }}"
+                latitude: {{ local.latitude }},
+                longitude: {{ local.longitude }},
+                imagem: "{{ local.imagem }}",
+                whatsapp: "{{ local.whatsapp }}",
+                telefone: "{{ local.telefone }}",
+                horario_funcionamento: "{{ local.horario_funcionamento }}",
+                nota_media: {{ local.nota_media|default:"0" }},
+                capacidade_atual: {{ local.capacidade_atual|default:"0" }},
+                capacidade_maxima: {{ local.capacidade_maxima|default:"0" }},
+                capacidade_percentual: {{ local.capacidade_percentual|default:"0" }}
             },
             {% endfor %}
         ];
@@ -104,22 +191,57 @@
         // Iterar sobre os locais e adicionar marcadores
         locais.forEach(function(local) {
             var marker = L.marker([local.latitude, local.longitude]).addTo(map);
+            
+            marker.on('mouseover', function() {
+                marker.bindPopup(`<b>${local.nome}</b><br>${local.horario_funcionamento}<br>${local.endereco}`).openPopup();
+            });
+
+            marker.on('mouseout', function() {
+                marker.closePopup();
+            });
+
             marker.on('click', function() {
                 document.getElementById('localName').innerText = local.nome;
                 document.getElementById('localInfo').innerText = local.informacao;
                 document.getElementById('localImage').src = local.imagem;
-                document.getElementById('localendereco').innerText = local.endereco;  
+                document.getElementById('localendereco').innerText = local.endereco;
+                document.getElementById('localNota').innerText = local.nota_media > 0 
+                    ? `Nota: ${local.nota_media.toFixed(1)}/5` 
+                    : 'Sem avaliações';
+                
+                // Atualiza o formulário de avaliação
+                const form = document.getElementById('avaliacaoForm');
+                if (form) {
+                    form.action = `/ong/${local.id}/avaliar/`;
+                }
+
+                // Atualiza a capacidade da ONG
+                document.getElementById('batteryLevel').style.width = `${local.capacidade_percentual}%`;
+                document.getElementById('capacidadeText').innerText = `Capacidade: ${local.capacidade_atual} / ${local.capacidade_maxima}`;
+                
+                // Atualiza o link do Waze
+                document.getElementById('wazeLink').href = `https://waze.com/ul?ll=${local.latitude},${local.longitude}&navigate=yes`;
+                // Atualiza o link do WhatsApp
+                document.getElementById('whatsappLink').href = `https://wa.me/${local.whatsapp}`;
+                // Atualiza o número de telefone
+                document.getElementById('localTelefone').innerText = local.telefone;
+                
                 document.getElementById('infoSidebar').classList.add('sidebar-open');
             });
-
-            // Adicionar um popup que abre ao clicar no marcador
-            marker.bindPopup(`<b>${local.nome}</b><br>${local.informacao}<br>${local.endereco}`);
         });
 
         // Evento para fechar a sidebar
         document.getElementById('closeSidebar').addEventListener('click', function() {
             document.getElementById('infoSidebar').classList.remove('sidebar-open');
         });
+
+        // Função para alternar o formulário
+        function toggleAvaliacaoForm() {
+            const form = document.getElementById('avaliacaoForm');
+            if (form) {
+                form.classList.toggle('hidden');
+            }
+        }
     </script>
 </body>
 </html>
