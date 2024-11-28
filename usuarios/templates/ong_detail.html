@@ -36,7 +36,6 @@
             </div>
         {% endif %}
 
-<<<<<<< HEAD
         {% if removido_com_sucesso %}
             <div id="removal-success-message" class="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-md shadow-lg">
                 <p>{{ removido_com_sucesso }}</p>
@@ -46,14 +45,6 @@
             <a href="{% url 'mapa' %}" class="flex items-center justify-center w-48 h-14 bg-green-500 text-white text-lg font-semibold rounded-lg hover:bg-green-700 hover:shadow-lg transition-transform transform hover:scale-105">
                 <i class="bi bi-arrow-left text-2xl mr-2"></i> 
                 Ir ao mapa
-=======
-        <!-- Título e Botão de Voltar -->
-        <div class="flex items-center space-x-8 mb-4">
-            <a href="{% url 'mapa' %}">
-                <div class="bg-red-400 hover:bg-red-600 p-2 rounded-lg">
-                    <i class="bi bi-arrow-return-left text-2xl text-white"></i>
-                </div>
->>>>>>> origin/main
             </a>
             <h1 class="text-4xl font-bold text-white mx-auto">{{ ong.nome }}</h1>
         </div>
